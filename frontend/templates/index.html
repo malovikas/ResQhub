@@ -23,10 +23,6 @@
 <body>
 
 
-<!-- ==================================================
-     HEADER
-================================================== -->
-
 <header class="main-header">
 
     <div class="header-container">
@@ -101,13 +97,11 @@
 
                 <div class="user-header-info">
 
-                    <strong
-                        id="current-user-name">
+                    <strong id="current-user-name">
                         User
                     </strong>
 
-                    <span
-                        id="current-user-details">
+                    <span id="current-user-details">
                         Logged in
                     </span>
 
@@ -131,16 +125,12 @@
 </header>
 
 
-<!-- ==================================================
-     MAIN
-================================================== -->
-
 <main>
 
 
-<!-- ==================================================
-     LANDING / HOME
-================================================== -->
+<!-- =====================================================
+HOME
+===================================================== -->
 
 <section
     id="dashboard"
@@ -171,7 +161,7 @@
 
             <button
                 type="button"
-                class="primary-button"
+                class="primary-button citizen-only"
                 onclick="showIncidentForm()">
 
                 Report Emergency
@@ -181,7 +171,7 @@
 
             <button
                 type="button"
-                class="secondary-button"
+                class="secondary-button citizen-only"
                 onclick="showRegistrationForm()">
 
                 Create Account
@@ -195,9 +185,9 @@
 </section>
 
 
-<!-- ==================================================
-     ADMIN SERVICE HEALTH
-================================================== -->
+<!-- =====================================================
+ADMIN SERVICE HEALTH
+===================================================== -->
 
 <section
     id="service-status-section"
@@ -341,9 +331,9 @@
 </section>
 
 
-<!-- ==================================================
-     ADMIN DASHBOARD COUNTS
-================================================== -->
+<!-- =====================================================
+ADMIN DASHBOARD
+===================================================== -->
 
 <section
     id="admin-dashboard"
@@ -440,9 +430,9 @@
 </section>
 
 
-<!-- ==================================================
-     REGISTRATION
-================================================== -->
+<!-- =====================================================
+REGISTRATION
+===================================================== -->
 
 <section
     id="registration-section"
@@ -580,9 +570,9 @@
 </section>
 
 
-<!-- ==================================================
-     LOGIN
-================================================== -->
+<!-- =====================================================
+LOGIN
+===================================================== -->
 
 <section
     id="login-section"
@@ -668,7 +658,6 @@
 
                 </button>
 
-
                 <button
                     type="button"
                     class="secondary-button"
@@ -706,9 +695,9 @@
 </section>
 
 
-<!-- ==================================================
-     INCIDENT FORM
-================================================== -->
+<!-- =====================================================
+INCIDENT FORM
+===================================================== -->
 
 <section
     id="incident-form-section"
@@ -860,9 +849,9 @@
 </section>
 
 
-<!-- ==================================================
-     INCIDENTS
-================================================== -->
+<!-- =====================================================
+INCIDENTS
+===================================================== -->
 
 <section
     id="incidents"
@@ -878,19 +867,19 @@
 
             <h2 id="incident-heading">
                 MY INCIDENTS
-            </h2>   
+            </h2>
 
         </div>
 
 
         <button
-            type="button"
-            class="primary-button"
-            onclick="showIncidentForm()">
+    type="button"
+    class="primary-button report-emergency-button"
+    onclick="showIncidentForm()">
 
-            Report Emergency
+    Report Emergency
 
-        </button>
+</button>
 
     </div>
 
@@ -908,9 +897,9 @@
 </section>
 
 
-<!-- ==================================================
-     RESCUE TEAMS - ADMIN
-================================================== -->
+<!-- =====================================================
+RESCUE TEAMS
+===================================================== -->
 
 <section
     id="rescue-teams"
@@ -930,18 +919,122 @@
 
         </div>
 
+
         <button
-            type="button"
-            class="primary-button"
-            onclick="showPopup(
-                'Rescue Team',
-                'Use your Rescue Service endpoint to create a rescue team. The backend currently controls the exact fields.',
-                'info'
-            )">
+    type="button"
+    class="primary-button"
+    onclick="showCreateRescueTeamForm()">
 
-            Create Team
+    Create Team
 
-        </button>
+</button>
+
+    </div>
+
+
+    <!-- CREATE TEAM FORM -->
+
+    <div
+        id="rescue-team-form-section"
+        class="form-section hidden">
+
+        <div class="form-card">
+
+            <h3>
+                Create Rescue Team
+            </h3>
+
+
+            <form id="rescue-team-form">
+
+                <div class="form-group">
+
+                    <label>
+                        Team Name
+                    </label>
+
+                    <input
+                        id="team-name"
+                        type="text"
+                        placeholder="e.g. Rescue Team Alpha"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Team Leader
+                    </label>
+
+                    <input
+                        id="team-leader"
+                        type="text"
+                        placeholder="Enter team leader"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Number of Members
+                    </label>
+
+                    <input
+                        id="team-members"
+                        type="number"
+                        min="1"
+                        placeholder="Enter members"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Location
+                    </label>
+
+                    <input
+                        id="team-location"
+                        type="text"
+                        placeholder="Team location"
+                        required>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button
+                        type="submit"
+                        class="primary-button">
+
+                        Create Team
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="hideRescueTeamForm()">
+
+                        Cancel
+
+                    </button>
+
+                </div>
+
+
+                <div id="team-form-message"></div>
+
+            </form>
+
+        </div>
 
     </div>
 
@@ -959,9 +1052,9 @@
 </section>
 
 
-<!-- ==================================================
-     RESOURCES - ADMIN
-================================================== -->
+<!-- =====================================================
+RESOURCES
+===================================================== -->
 
 <section
     id="resources"
@@ -981,18 +1074,122 @@
 
         </div>
 
+
         <button
-            type="button"
-            class="primary-button"
-            onclick="showPopup(
-                'Resources',
-                'Resource creation will use the Resource Service fields. Existing resources can be edited or deleted below.',
-                'info'
-            )">
+    type="button"
+    class="primary-button"
+    onclick="showCreateResourceForm()">
 
-            Manage Resources
+    Manage Resources
 
-        </button>
+</button>
+
+    </div>
+
+
+    <!-- CREATE RESOURCE FORM -->
+
+    <div
+        id="resource-form-section"
+        class="form-section hidden">
+
+        <div class="form-card">
+
+            <h3>
+                Create Resource
+            </h3>
+
+
+            <form id="resource-form">
+
+                <div class="form-group">
+
+                    <label>
+                        Resource Name
+                    </label>
+
+                    <input
+                        id="resource-name"
+                        type="text"
+                        placeholder="e.g. Ambulance"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Resource Type
+                    </label>
+
+                    <input
+                        id="resource-type"
+                        type="text"
+                        placeholder="e.g. Medical"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Quantity
+                    </label>
+
+                    <input
+                        id="resource-quantity"
+                        type="number"
+                        min="1"
+                        placeholder="Enter quantity"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Location
+                    </label>
+
+                    <input
+                        id="resource-location"
+                        type="text"
+                        placeholder="Resource location"
+                        required>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button
+                        type="submit"
+                        class="primary-button">
+
+                        Create Resource
+
+                    </button>
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        onclick="hideResourceForm()">
+
+                        Cancel
+
+                    </button>
+
+                </div>
+
+
+                <div id="resource-form-message"></div>
+
+            </form>
+
+        </div>
 
     </div>
 
@@ -1010,9 +1207,13 @@
 </section>
 
 
-<!-- ==================================================
+<!-- =====================================================
+NOTIFICATIONS
+===================================================== -->
+
+<!-- =====================================================
      NOTIFICATIONS
-================================================== -->
+===================================================== -->
 
 <section
     id="notifications"
@@ -1030,10 +1231,30 @@
                 Notifications
             </h2>
 
+            <p class="section-description">
+                Emergency updates and response notifications
+            </p>
+
         </div>
+
+
+        <!-- ADMIN ONLY -->
+
+        <button
+            type="button"
+            id="create-notification-button"
+            class="primary-button admin-only hidden">
+
+            Create Notification
+
+        </button>
 
     </div>
 
+
+    <!-- ==================================================
+         NOTIFICATION LIST
+    ================================================== -->
 
     <div
         id="notification-list"
@@ -1045,15 +1266,108 @@
 
     </div>
 
-</section>
 
+    <!-- ==================================================
+         CREATE NOTIFICATION FORM
+    ================================================== -->
+
+    <div
+        id="notification-form-section"
+        class="form-section hidden">
+
+        <div class="form-card">
+
+            <p class="section-label">
+                ADMIN ALERT
+            </p>
+
+            <h3>
+                Create Notification
+            </h3>
+
+
+            <form id="notification-form">
+
+                <div class="form-group">
+
+                    <label for="notification-user-id">
+                        User ID
+                    </label>
+
+                    <input
+                        id="notification-user-id"
+                        type="number"
+                        min="1"
+                        placeholder="Enter user ID"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="notification-type">
+                        Notification Type
+                    </label>
+
+                    <input
+                        id="notification-type"
+                        type="text"
+                        placeholder="e.g. Emergency Update"
+                        required>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="notification-message">
+                        Message
+                    </label>
+
+                    <textarea
+                        id="notification-message"
+                        placeholder="Enter notification"
+                        required></textarea>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button
+                        type="submit"
+                        class="primary-button">
+
+                        Send Notification
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="secondary-button"
+                        id="cancel-notification-button">
+
+                        Cancel
+
+                    </button>
+
+                </div>
+
+
+                <div id="notification-form-message"></div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</section>
 
 </main>
 
-
-<!-- ==================================================
-     FOOTER
-================================================== -->
 
 <footer class="main-footer">
 
