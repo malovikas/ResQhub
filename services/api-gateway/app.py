@@ -12,11 +12,30 @@ CORS(app)
 # SERVICE URLS
 # ============================================================
 
-USER_SERVICE_URL = "http://127.0.0.1:5001"
-INCIDENT_SERVICE_URL = "http://127.0.0.1:5002"
-RESCUE_SERVICE_URL = "http://127.0.0.1:5003"
-RESOURCE_SERVICE_URL = "http://127.0.0.1:5004"
-NOTIFICATION_SERVICE_URL = "http://127.0.0.1:5005"
+USER_SERVICE_URL = os.getenv(
+    "USER_SERVICE_URL",
+    "http://127.0.0.1:5001"
+)
+
+INCIDENT_SERVICE_URL = os.getenv(
+    "INCIDENT_SERVICE_URL",
+    "http://127.0.0.1:5002"
+)
+
+RESCUE_SERVICE_URL = os.getenv(
+    "RESCUE_SERVICE_URL",
+    "http://127.0.0.1:5003"
+)
+
+RESOURCE_SERVICE_URL = os.getenv(
+    "RESOURCE_SERVICE_URL",
+    "http://127.0.0.1:5004"
+)
+
+NOTIFICATION_SERVICE_URL = os.getenv(
+    "NOTIFICATION_SERVICE_URL",
+    "http://127.0.0.1:5005"
+)
 
 
 # ============================================================
