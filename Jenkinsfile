@@ -38,31 +38,136 @@ pipeline {
             steps {
 
                 echo "========================================"
-                echo "Verifying ResQhub project"
+                echo "Verifying ResQhub project structure"
                 echo "========================================"
 
                 sh '''
-                    echo "Current directory:"
+                    echo ""
+                    echo "===== Current Directory ====="
                     pwd
 
                     echo ""
-                    echo "Project files:"
+                    echo "===== Project Files ====="
                     ls -la
 
                     echo ""
-                    echo "Git version:"
+                    echo "===== Frontend ====="
+                    ls -la frontend
+
+                    echo ""
+                    echo "===== Services ====="
+                    ls -la services
+
+                    echo ""
+                    echo "===== Git Version ====="
                     git --version
 
                     echo ""
-                    echo "Python version:"
+                    echo "===== Python Version ====="
                     python3 --version
+
+                    echo ""
+                    echo "===== Docker Version ====="
+                    docker --version
                 '''
             }
         }
 
 
         // ====================================================
-        // 3. BUILD / DEPENDENCY CHECK
+        // 3. VERIFY SERVICES
+        // ====================================================
+
+        stage('Verify Services') {
+
+            steps {
+
+                echo "========================================"
+                echo "Verifying ResQhub services"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== User Service ====="
+
+                    test -f services/user-service/app.py
+                    test -f services/user-service/requirements.txt
+                    test -f services/user-service/Dockerfile
+
+                    echo "User Service: OK"
+
+
+                    echo ""
+                    echo "===== Incident Service ====="
+
+                    test -f services/incident-service/app.py
+                    test -f services/incident-service/requirements.txt
+                    test -f services/incident-service/Dockerfile
+
+                    echo "Incident Service: OK"
+
+
+                    echo ""
+                    echo "===== Rescue Service ====="
+
+                    test -f services/rescue-service/app.py
+                    test -f services/rescue-service/requirements.txt
+                    test -f services/rescue-service/Dockerfile
+
+                    echo "Rescue Service: OK"
+
+
+                    echo ""
+                    echo "===== Resource Service ====="
+
+                    test -f services/resource-service/app.py
+                    test -f services/resource-service/requirements.txt
+                    test -f services/resource-service/Dockerfile
+
+                    echo "Resource Service: OK"
+
+
+                    echo ""
+                    echo "===== Notification Service ====="
+
+                    test -f services/notification-service/app.py
+                    test -f services/notification-service/requirements.txt
+                    test -f services/notification-service/Dockerfile
+
+                    echo "Notification Service: OK"
+
+
+                    echo ""
+                    echo "===== API Gateway ====="
+
+                    test -f services/api-gateway/app.py
+                    test -f services/api-gateway/requirements.txt
+                    test -f services/api-gateway/Dockerfile
+
+                    echo "API Gateway: OK"
+
+
+                    echo ""
+                    echo "===== Frontend ====="
+
+                    test -f frontend/Dockerfile
+
+                    echo "Frontend Dockerfile: OK"
+
+
+                    echo ""
+                    echo "========================================"
+                    echo "All ResQhub services verified successfully"
+                    echo "========================================"
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 4. BUILD / DEPENDENCY CHECK
         // ====================================================
 
         stage('Build') {
@@ -70,69 +175,53 @@ pipeline {
             steps {
 
                 echo "========================================"
-                echo "Building ResQhub services"
+                echo "Checking Python dependencies"
                 echo "========================================"
 
                 sh '''
-                    echo ""
-                    echo "===== Checking Python services ====="
-                    echo ""
-
-                    if [ -f user-service/requirements.txt ]; then
-                        echo "Installing User Service dependencies..."
-                        python3 -m pip install -r user-service/requirements.txt
-                    else
-                        echo "User Service requirements.txt not found"
-                    fi
-
-                    if [ -f incident-service/requirements.txt ]; then
-                        echo "Installing Incident Service dependencies..."
-                        python3 -m pip install -r incident-service/requirements.txt
-                    else
-                        echo "Incident Service requirements.txt not found"
-                    fi
-
-                    if [ -f rescue-service/requirements.txt ]; then
-                        echo "Installing Rescue Service dependencies..."
-                        python3 -m pip install -r rescue-service/requirements.txt
-                    else
-                        echo "Rescue Service requirements.txt not found"
-                    fi
-
-                    if [ -f resource-service/requirements.txt ]; then
-                        echo "Installing Resource Service dependencies..."
-                        python3 -m pip install -r resource-service/requirements.txt
-                    else
-                        echo "Resource Service requirements.txt not found"
-                    fi
-
-                    if [ -f notification-service/requirements.txt ]; then
-                        echo "Installing Notification Service dependencies..."
-                        python3 -m pip install -r notification-service/requirements.txt
-                    else
-                        echo "Notification Service requirements.txt not found"
-                    fi
-
-                    if [ -f api-gateway/requirements.txt ]; then
-                        echo "Installing API Gateway dependencies..."
-                        python3 -m pip install -r api-gateway/requirements.txt
-                    else
-                        echo "API Gateway requirements.txt not found"
-                    fi
+                    set -e
 
                     echo ""
-                    echo "===== Python version ====="
-                    python3 --version
+                    echo "===== User Service ====="
+                    python3 -m pip install -r services/user-service/requirements.txt
+
 
                     echo ""
-                    echo "===== Build verification completed ====="
+                    echo "===== Incident Service ====="
+                    python3 -m pip install -r services/incident-service/requirements.txt
+
+
+                    echo ""
+                    echo "===== Rescue Service ====="
+                    python3 -m pip install -r services/rescue-service/requirements.txt
+
+
+                    echo ""
+                    echo "===== Resource Service ====="
+                    python3 -m pip install -r services/resource-service/requirements.txt
+
+
+                    echo ""
+                    echo "===== Notification Service ====="
+                    python3 -m pip install -r services/notification-service/requirements.txt
+
+
+                    echo ""
+                    echo "===== API Gateway ====="
+                    python3 -m pip install -r services/api-gateway/requirements.txt
+
+
+                    echo ""
+                    echo "========================================"
+                    echo "Python dependency verification completed"
+                    echo "========================================"
                 '''
             }
         }
 
 
         // ====================================================
-        // 4. TEST
+        // 5. TEST
         // ====================================================
 
         stage('Test') {
@@ -144,59 +233,111 @@ pipeline {
                 echo "========================================"
 
                 sh '''
-                    echo "Checking for test directories..."
-
-                    if [ -d tests ]; then
-                        echo "Tests directory found."
-                        python3 -m pytest tests -v
-                    else
-                        echo "No root tests directory found."
-                    fi
-
-                    if [ -d user-service/tests ]; then
-                        echo "User Service tests found."
-                        python3 -m pytest user-service/tests -v
-                    else
-                        echo "No User Service tests found."
-                    fi
-
-                    if [ -d incident-service/tests ]; then
-                        echo "Incident Service tests found."
-                        python3 -m pytest incident-service/tests -v
-                    else
-                        echo "No Incident Service tests found."
-                    fi
-
-                    if [ -d rescue-service/tests ]; then
-                        echo "Rescue Service tests found."
-                        python3 -m pytest rescue-service/tests -v
-                    else
-                        echo "No Rescue Service tests found."
-                    fi
-
-                    if [ -d resource-service/tests ]; then
-                        echo "Resource Service tests found."
-                        python3 -m pytest resource-service/tests -v
-                    else
-                        echo "No Resource Service tests found."
-                    fi
-
-                    if [ -d notification-service/tests ]; then
-                        echo "Notification Service tests found."
-                        python3 -m pytest notification-service/tests -v
-                    else
-                        echo "No Notification Service tests found."
-                    fi
+                    set -e
 
                     echo ""
-                    echo "===== Test stage completed ====="
+                    echo "===== Checking for test files ====="
+
+                    TEST_FOUND=false
+
+
+                    if [ -d tests ]; then
+
+                        echo "Root tests directory found."
+
+                        python3 -m pytest tests -v
+
+                        TEST_FOUND=true
+
+                    fi
+
+
+                    if [ -d services/user-service/tests ]; then
+
+                        echo "User Service tests found."
+
+                        python3 -m pytest services/user-service/tests -v
+
+                        TEST_FOUND=true
+
+                    fi
+
+
+                    if [ -d services/incident-service/tests ]; then
+
+                        echo "Incident Service tests found."
+
+                        python3 -m pytest services/incident-service/tests -v
+
+                        TEST_FOUND=true
+
+                    fi
+
+
+                    if [ -d services/rescue-service/tests ]; then
+
+                        echo "Rescue Service tests found."
+
+                        python3 -m pytest services/rescue-service/tests -v
+
+                        TEST_FOUND=true
+
+                    fi
+
+
+                    if [ -d services/resource-service/tests ]; then
+
+                        echo "Resource Service tests found."
+
+                        python3 -m pytest services/resource-service/tests -v
+
+                        TEST_FOUND=true
+
+                    fi
+
+
+                    if [ -d services/notification-service/tests ]; then
+
+                        echo "Notification Service tests found."
+
+                        python3 -m pytest services/notification-service/tests -v
+
+                        TEST_FOUND=true
+
+                    fi
+
+
+                    if [ -d services/api-gateway/tests ]; then
+
+                        echo "API Gateway tests found."
+
+                        python3 -m pytest services/api-gateway/tests -v
+
+                        TEST_FOUND=true
+
+                    fi
+
+
+                    if [ "$TEST_FOUND" = false ]; then
+
+                        echo ""
+                        echo "No automated test directories found."
+                        echo "Skipping test execution."
+
+                    fi
+
+
+                    echo ""
+                    echo "========================================"
+                    echo "Test stage completed"
+                    echo "========================================"
                 '''
             }
         }
 
 
         // ====================================================
-        // 5. DOCKER CHECK
+        // 6. DOCKER CHECK
         // ====================================================
 
         stage('Docker Check') {
@@ -208,10 +349,117 @@ pipeline {
                 echo "========================================"
 
                 sh '''
+                    set -e
+
                     docker --version
 
                     echo ""
+                    echo "Checking Docker daemon..."
+
+                    docker info > /dev/null
+
+                    echo ""
+                    echo "Docker daemon is running."
                     echo "Docker is available to Jenkins."
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 7. BUILD DOCKER IMAGES
+        // ====================================================
+
+        stage('Build Docker Images') {
+
+            steps {
+
+                echo "========================================"
+                echo "Building ResQhub Docker images"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== Building Frontend Image ====="
+
+                    docker build \
+                        -t resqhub-frontend:latest \
+                        ./frontend
+
+
+                    echo ""
+                    echo "===== Building User Service Image ====="
+
+                    docker build \
+                        -t resqhub-user-service:latest \
+                        ./services/user-service
+
+
+                    echo ""
+                    echo "===== Building Incident Service Image ====="
+
+                    docker build \
+                        -t resqhub-incident-service:latest \
+                        ./services/incident-service
+
+
+                    echo ""
+                    echo "===== Building Rescue Service Image ====="
+
+                    docker build \
+                        -t resqhub-rescue-service:latest \
+                        ./services/rescue-service
+
+
+                    echo ""
+                    echo "===== Building Resource Service Image ====="
+
+                    docker build \
+                        -t resqhub-resource-service:latest \
+                        ./services/resource-service
+
+
+                    echo ""
+                    echo "===== Building Notification Service Image ====="
+
+                    docker build \
+                        -t resqhub-notification-service:latest \
+                        ./services/notification-service
+
+
+                    echo ""
+                    echo "===== Building API Gateway Image ====="
+
+                    docker build \
+                        -t resqhub-api-gateway:latest \
+                        ./services/api-gateway
+
+
+                    echo ""
+                    echo "========================================"
+                    echo "All Docker images built successfully"
+                    echo "========================================"
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 8. DOCKER IMAGES
+        // ====================================================
+
+        stage('Docker Images') {
+
+            steps {
+
+                echo "========================================"
+                echo "Listing ResQhub Docker images"
+                echo "========================================"
+
+                sh '''
+                    docker images | grep resqhub
                 '''
             }
         }
@@ -233,7 +481,10 @@ pipeline {
             echo "Build Number: ${BUILD_NUMBER}"
             echo "Branch: ${env.BRANCH_NAME}"
             echo "Project: ${PROJECT_NAME}"
+
+            echo "All Docker images were built successfully."
         }
+
 
         failure {
 
@@ -243,6 +494,7 @@ pipeline {
 
             echo "Check the Jenkins console output."
         }
+
 
         always {
 
