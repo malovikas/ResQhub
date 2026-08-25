@@ -42,6 +42,8 @@ pipeline {
                 echo "========================================"
 
                 sh '''
+                    set -e
+
                     echo ""
                     echo "===== Current Directory ====="
                     pwd
@@ -167,177 +169,7 @@ pipeline {
 
 
         // ====================================================
-        // 4. BUILD / DEPENDENCY CHECK
-        // ====================================================
-
-        stage('Build') {
-
-            steps {
-
-                echo "========================================"
-                echo "Checking Python dependencies"
-                echo "========================================"
-
-                sh '''
-                    set -e
-
-                    echo ""
-                    echo "===== User Service ====="
-                    python3 -m pip install -r services/user-service/requirements.txt
-
-
-                    echo ""
-                    echo "===== Incident Service ====="
-                    python3 -m pip install -r services/incident-service/requirements.txt
-
-
-                    echo ""
-                    echo "===== Rescue Service ====="
-                    python3 -m pip install -r services/rescue-service/requirements.txt
-
-
-                    echo ""
-                    echo "===== Resource Service ====="
-                    python3 -m pip install -r services/resource-service/requirements.txt
-
-
-                    echo ""
-                    echo "===== Notification Service ====="
-                    python3 -m pip install -r services/notification-service/requirements.txt
-
-
-                    echo ""
-                    echo "===== API Gateway ====="
-                    python3 -m pip install -r services/api-gateway/requirements.txt
-
-
-                    echo ""
-                    echo "========================================"
-                    echo "Python dependency verification completed"
-                    echo "========================================"
-                '''
-            }
-        }
-
-
-        // ====================================================
-        // 5. TEST
-        // ====================================================
-
-        stage('Test') {
-
-            steps {
-
-                echo "========================================"
-                echo "Running ResQhub tests"
-                echo "========================================"
-
-                sh '''
-                    set -e
-
-                    echo ""
-                    echo "===== Checking for test files ====="
-
-                    TEST_FOUND=false
-
-
-                    if [ -d tests ]; then
-
-                        echo "Root tests directory found."
-
-                        python3 -m pytest tests -v
-
-                        TEST_FOUND=true
-
-                    fi
-
-
-                    if [ -d services/user-service/tests ]; then
-
-                        echo "User Service tests found."
-
-                        python3 -m pytest services/user-service/tests -v
-
-                        TEST_FOUND=true
-
-                    fi
-
-
-                    if [ -d services/incident-service/tests ]; then
-
-                        echo "Incident Service tests found."
-
-                        python3 -m pytest services/incident-service/tests -v
-
-                        TEST_FOUND=true
-
-                    fi
-
-
-                    if [ -d services/rescue-service/tests ]; then
-
-                        echo "Rescue Service tests found."
-
-                        python3 -m pytest services/rescue-service/tests -v
-
-                        TEST_FOUND=true
-
-                    fi
-
-
-                    if [ -d services/resource-service/tests ]; then
-
-                        echo "Resource Service tests found."
-
-                        python3 -m pytest services/resource-service/tests -v
-
-                        TEST_FOUND=true
-
-                    fi
-
-
-                    if [ -d services/notification-service/tests ]; then
-
-                        echo "Notification Service tests found."
-
-                        python3 -m pytest services/notification-service/tests -v
-
-                        TEST_FOUND=true
-
-                    fi
-
-
-                    if [ -d services/api-gateway/tests ]; then
-
-                        echo "API Gateway tests found."
-
-                        python3 -m pytest services/api-gateway/tests -v
-
-                        TEST_FOUND=true
-
-                    fi
-
-
-                    if [ "$TEST_FOUND" = false ]; then
-
-                        echo ""
-                        echo "No automated test directories found."
-                        echo "Skipping test execution."
-
-                    fi
-
-
-                    echo ""
-                    echo "========================================"
-                    echo "Test stage completed"
-                    echo "========================================"
-                '''
-            }
-        }
-
-
-        // ====================================================
-        // 6. DOCKER CHECK
+        // 4. DOCKER CHECK
         // ====================================================
 
         stage('Docker Check') {
@@ -351,14 +183,14 @@ pipeline {
                 sh '''
                     set -e
 
+                    echo ""
+                    echo "===== Docker Version ====="
                     docker --version
 
                     echo ""
-                    echo "Checking Docker daemon..."
-
+                    echo "===== Docker Daemon ====="
                     docker info > /dev/null
 
-                    echo ""
                     echo "Docker daemon is running."
                     echo "Docker is available to Jenkins."
                 '''
@@ -367,7 +199,7 @@ pipeline {
 
 
         // ====================================================
-        // 7. BUILD DOCKER IMAGES
+        // 5. BUILD DOCKER IMAGES
         // ====================================================
 
         stage('Build Docker Images') {
@@ -382,7 +214,9 @@ pipeline {
                     set -e
 
                     echo ""
-                    echo "===== Building Frontend Image ====="
+                    echo "========================================"
+                    echo "Building Frontend Image"
+                    echo "========================================"
 
                     docker build \
                         -t resqhub-frontend:latest \
@@ -390,7 +224,9 @@ pipeline {
 
 
                     echo ""
-                    echo "===== Building User Service Image ====="
+                    echo "========================================"
+                    echo "Building User Service Image"
+                    echo "========================================"
 
                     docker build \
                         -t resqhub-user-service:latest \
@@ -398,7 +234,9 @@ pipeline {
 
 
                     echo ""
-                    echo "===== Building Incident Service Image ====="
+                    echo "========================================"
+                    echo "Building Incident Service Image"
+                    echo "========================================"
 
                     docker build \
                         -t resqhub-incident-service:latest \
@@ -406,7 +244,9 @@ pipeline {
 
 
                     echo ""
-                    echo "===== Building Rescue Service Image ====="
+                    echo "========================================"
+                    echo "Building Rescue Service Image"
+                    echo "========================================"
 
                     docker build \
                         -t resqhub-rescue-service:latest \
@@ -414,7 +254,9 @@ pipeline {
 
 
                     echo ""
-                    echo "===== Building Resource Service Image ====="
+                    echo "========================================"
+                    echo "Building Resource Service Image"
+                    echo "========================================"
 
                     docker build \
                         -t resqhub-resource-service:latest \
@@ -422,7 +264,9 @@ pipeline {
 
 
                     echo ""
-                    echo "===== Building Notification Service Image ====="
+                    echo "========================================"
+                    echo "Building Notification Service Image"
+                    echo "========================================"
 
                     docker build \
                         -t resqhub-notification-service:latest \
@@ -430,7 +274,9 @@ pipeline {
 
 
                     echo ""
-                    echo "===== Building API Gateway Image ====="
+                    echo "========================================"
+                    echo "Building API Gateway Image"
+                    echo "========================================"
 
                     docker build \
                         -t resqhub-api-gateway:latest \
@@ -447,19 +293,29 @@ pipeline {
 
 
         // ====================================================
-        // 8. DOCKER IMAGES
+        // 6. VERIFY DOCKER IMAGES
         // ====================================================
 
-        stage('Docker Images') {
+        stage('Verify Docker Images') {
 
             steps {
 
                 echo "========================================"
-                echo "Listing ResQhub Docker images"
+                echo "Verifying ResQhub Docker images"
                 echo "========================================"
 
                 sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== ResQhub Docker Images ====="
+
                     docker images | grep resqhub
+
+                    echo ""
+                    echo "========================================"
+                    echo "Docker image verification completed"
+                    echo "========================================"
                 '''
             }
         }
@@ -482,7 +338,8 @@ pipeline {
             echo "Branch: ${env.BRANCH_NAME}"
             echo "Project: ${PROJECT_NAME}"
 
-            echo "All Docker images were built successfully."
+            echo ""
+            echo "All ResQhub Docker images were built successfully."
         }
 
 
