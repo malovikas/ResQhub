@@ -12,6 +12,7 @@ metadata:
   name: resqhub
 
 ---
+
 # ============================================================
 # USER SERVICE
 # ============================================================
@@ -51,6 +52,7 @@ spec:
             periodSeconds: 20
 
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -65,6 +67,7 @@ spec:
   type: ClusterIP
 
 ---
+
 # ============================================================
 # INCIDENT SERVICE
 # ============================================================
@@ -104,6 +107,7 @@ spec:
             periodSeconds: 20
 
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -118,6 +122,7 @@ spec:
   type: ClusterIP
 
 ---
+
 # ============================================================
 # RESCUE SERVICE
 # ============================================================
@@ -157,6 +162,7 @@ spec:
             periodSeconds: 20
 
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -171,6 +177,7 @@ spec:
   type: ClusterIP
 
 ---
+
 # ============================================================
 # RESOURCE SERVICE
 # ============================================================
@@ -210,6 +217,7 @@ spec:
             periodSeconds: 20
 
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -224,6 +232,7 @@ spec:
   type: ClusterIP
 
 ---
+
 # ============================================================
 # NOTIFICATION SERVICE
 # ============================================================
@@ -263,6 +272,7 @@ spec:
             periodSeconds: 20
 
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -277,6 +287,7 @@ spec:
   type: ClusterIP
 
 ---
+
 # ============================================================
 # API GATEWAY
 # ============================================================
@@ -300,6 +311,7 @@ spec:
         - name: api-gateway
           image: 737206603875.dkr.ecr.us-east-1.amazonaws.com/resqhub-api-gateway:latest
           imagePullPolicy: Always
+
           ports:
             - containerPort: 5000
 
@@ -338,6 +350,10 @@ spec:
             periodSeconds: 20
 
 ---
+
+# API GATEWAY INTERNAL SERVICE
+# Only frontend / internal Kubernetes traffic should access it.
+
 apiVersion: v1
 kind: Service
 metadata:
@@ -349,9 +365,10 @@ spec:
   ports:
     - port: 5000
       targetPort: 5000
-  type: LoadBalancer
+  type: ClusterIP
 
 ---
+
 # ============================================================
 # FRONTEND
 # ============================================================
@@ -375,6 +392,7 @@ spec:
         - name: frontend
           image: 737206603875.dkr.ecr.us-east-1.amazonaws.com/resqhub-frontend:latest
           imagePullPolicy: Always
+
           ports:
             - containerPort: 80
 
@@ -393,6 +411,10 @@ spec:
             periodSeconds: 20
 
 ---
+
+# FRONTEND EXTERNAL LOAD BALANCER
+# This is the ONLY LoadBalancer in the project.
+
 apiVersion: v1
 kind: Service
 metadata:
