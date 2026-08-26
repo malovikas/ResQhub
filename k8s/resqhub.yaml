@@ -1,5 +1,5 @@
 # ============================================================
-# RESQHUB KUBERNETES MANIFEST
+# RESQHUB KUBERNETES DEPLOYMENT
 # ============================================================
 
 # ============================================================
@@ -13,7 +13,7 @@ metadata:
 
 ---
 # ============================================================
-# 2. USER SERVICE - DEPLOYMENT
+# 2. USER SERVICE DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -21,6 +21,7 @@ kind: Deployment
 metadata:
   name: user-service
   namespace: resqhub
+
 spec:
   replicas: 1
 
@@ -44,9 +45,23 @@ spec:
           ports:
             - containerPort: 5001
 
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5001
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
 ---
 # ============================================================
-# 3. USER SERVICE - SERVICE
+# 3. USER SERVICE
 # ============================================================
 
 apiVersion: v1
@@ -56,18 +71,19 @@ metadata:
   namespace: resqhub
 
 spec:
-  type: ClusterIP
-
   selector:
     app: user-service
 
   ports:
-    - port: 5001
+    - protocol: TCP
+      port: 5001
       targetPort: 5001
+
+  type: ClusterIP
 
 ---
 # ============================================================
-# 4. INCIDENT SERVICE - DEPLOYMENT
+# 4. INCIDENT SERVICE DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -99,9 +115,23 @@ spec:
           ports:
             - containerPort: 5002
 
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5002
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
 ---
 # ============================================================
-# 5. INCIDENT SERVICE - SERVICE
+# 5. INCIDENT SERVICE
 # ============================================================
 
 apiVersion: v1
@@ -111,18 +141,19 @@ metadata:
   namespace: resqhub
 
 spec:
-  type: ClusterIP
-
   selector:
     app: incident-service
 
   ports:
-    - port: 5002
+    - protocol: TCP
+      port: 5002
       targetPort: 5002
+
+  type: ClusterIP
 
 ---
 # ============================================================
-# 6. RESCUE SERVICE - DEPLOYMENT
+# 6. RESCUE SERVICE DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -154,9 +185,23 @@ spec:
           ports:
             - containerPort: 5003
 
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5003
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
 ---
 # ============================================================
-# 7. RESCUE SERVICE - SERVICE
+# 7. RESCUE SERVICE
 # ============================================================
 
 apiVersion: v1
@@ -166,18 +211,19 @@ metadata:
   namespace: resqhub
 
 spec:
-  type: ClusterIP
-
   selector:
     app: rescue-service
 
   ports:
-    - port: 5003
+    - protocol: TCP
+      port: 5003
       targetPort: 5003
+
+  type: ClusterIP
 
 ---
 # ============================================================
-# 8. RESOURCE SERVICE - DEPLOYMENT
+# 8. RESOURCE SERVICE DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -209,9 +255,23 @@ spec:
           ports:
             - containerPort: 5004
 
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5004
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
 ---
 # ============================================================
-# 9. RESOURCE SERVICE - SERVICE
+# 9. RESOURCE SERVICE
 # ============================================================
 
 apiVersion: v1
@@ -221,18 +281,19 @@ metadata:
   namespace: resqhub
 
 spec:
-  type: ClusterIP
-
   selector:
     app: resource-service
 
   ports:
-    - port: 5004
+    - protocol: TCP
+      port: 5004
       targetPort: 5004
+
+  type: ClusterIP
 
 ---
 # ============================================================
-# 10. NOTIFICATION SERVICE - DEPLOYMENT
+# 10. NOTIFICATION SERVICE DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -264,9 +325,23 @@ spec:
           ports:
             - containerPort: 5005
 
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5005
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5005
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
 ---
 # ============================================================
-# 11. NOTIFICATION SERVICE - SERVICE
+# 11. NOTIFICATION SERVICE
 # ============================================================
 
 apiVersion: v1
@@ -276,18 +351,19 @@ metadata:
   namespace: resqhub
 
 spec:
-  type: ClusterIP
-
   selector:
     app: notification-service
 
   ports:
-    - port: 5005
+    - protocol: TCP
+      port: 5005
       targetPort: 5005
+
+  type: ClusterIP
 
 ---
 # ============================================================
-# 12. API GATEWAY - DEPLOYMENT
+# 12. API GATEWAY DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -319,10 +395,6 @@ spec:
           ports:
             - containerPort: 5000
 
-          # ==================================================
-          # KUBERNETES SERVICE URLs
-          # ==================================================
-
           env:
 
             - name: USER_SERVICE_URL
@@ -340,9 +412,23 @@ spec:
             - name: NOTIFICATION_SERVICE_URL
               value: "http://notification-service:5005"
 
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
 ---
 # ============================================================
-# 13. API GATEWAY - SERVICE
+# 13. API GATEWAY SERVICE
 # ============================================================
 
 apiVersion: v1
@@ -352,18 +438,19 @@ metadata:
   namespace: resqhub
 
 spec:
-  type: LoadBalancer
-
   selector:
     app: api-gateway
 
   ports:
-    - port: 5000
+    - protocol: TCP
+      port: 5000
       targetPort: 5000
+
+  type: LoadBalancer
 
 ---
 # ============================================================
-# 14. FRONTEND - DEPLOYMENT
+# 14. FRONTEND DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -395,9 +482,23 @@ spec:
           ports:
             - containerPort: 80
 
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
 ---
 # ============================================================
-# 15. FRONTEND - SERVICE
+# 15. FRONTEND SERVICE
 # ============================================================
 
 apiVersion: v1
@@ -407,11 +508,12 @@ metadata:
   namespace: resqhub
 
 spec:
-  type: LoadBalancer
-
   selector:
     app: frontend
 
   ports:
-    - port: 80
+    - protocol: TCP
+      port: 80
       targetPort: 80
+
+  type: LoadBalancer
