@@ -1,5 +1,9 @@
 # ============================================================
-# RESQHUB KUBERNETES DEPLOYMENT
+# RESQHUB KUBERNETES MANIFEST
+# ============================================================
+
+# ============================================================
+# 1. NAMESPACE
 # ============================================================
 
 apiVersion: v1
@@ -9,7 +13,7 @@ metadata:
 
 ---
 # ============================================================
-# USER SERVICE
+# 2. USER SERVICE - DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -19,50 +23,51 @@ metadata:
   namespace: resqhub
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: user-service
+
   template:
     metadata:
       labels:
         app: user-service
+
     spec:
       containers:
         - name: user-service
+
           image: 737206603875.dkr.ecr.us-east-1.amazonaws.com/resqhub-user-service:latest
+
           imagePullPolicy: Always
+
           ports:
             - containerPort: 5001
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 5001
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 5001
-            initialDelaySeconds: 30
-            periodSeconds: 20
 
 ---
+# ============================================================
+# 3. USER SERVICE - SERVICE
+# ============================================================
+
 apiVersion: v1
 kind: Service
 metadata:
   name: user-service
   namespace: resqhub
+
 spec:
   type: ClusterIP
+
   selector:
     app: user-service
+
   ports:
     - port: 5001
       targetPort: 5001
 
 ---
 # ============================================================
-# INCIDENT SERVICE
+# 4. INCIDENT SERVICE - DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -70,52 +75,54 @@ kind: Deployment
 metadata:
   name: incident-service
   namespace: resqhub
+
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: incident-service
+
   template:
     metadata:
       labels:
         app: incident-service
+
     spec:
       containers:
         - name: incident-service
+
           image: 737206603875.dkr.ecr.us-east-1.amazonaws.com/resqhub-incident-service:latest
+
           imagePullPolicy: Always
+
           ports:
             - containerPort: 5002
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 5002
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 5002
-            initialDelaySeconds: 30
-            periodSeconds: 20
 
 ---
+# ============================================================
+# 5. INCIDENT SERVICE - SERVICE
+# ============================================================
+
 apiVersion: v1
 kind: Service
 metadata:
   name: incident-service
   namespace: resqhub
+
 spec:
   type: ClusterIP
+
   selector:
     app: incident-service
+
   ports:
     - port: 5002
       targetPort: 5002
 
 ---
 # ============================================================
-# RESCUE SERVICE
+# 6. RESCUE SERVICE - DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -123,52 +130,54 @@ kind: Deployment
 metadata:
   name: rescue-service
   namespace: resqhub
+
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: rescue-service
+
   template:
     metadata:
       labels:
         app: rescue-service
+
     spec:
       containers:
         - name: rescue-service
+
           image: 737206603875.dkr.ecr.us-east-1.amazonaws.com/resqhub-rescue-service:latest
+
           imagePullPolicy: Always
+
           ports:
             - containerPort: 5003
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 5003
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 5003
-            initialDelaySeconds: 30
-            periodSeconds: 20
 
 ---
+# ============================================================
+# 7. RESCUE SERVICE - SERVICE
+# ============================================================
+
 apiVersion: v1
 kind: Service
 metadata:
   name: rescue-service
   namespace: resqhub
+
 spec:
   type: ClusterIP
+
   selector:
     app: rescue-service
+
   ports:
     - port: 5003
       targetPort: 5003
 
 ---
 # ============================================================
-# RESOURCE SERVICE
+# 8. RESOURCE SERVICE - DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -176,52 +185,54 @@ kind: Deployment
 metadata:
   name: resource-service
   namespace: resqhub
+
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: resource-service
+
   template:
     metadata:
       labels:
         app: resource-service
+
     spec:
       containers:
         - name: resource-service
+
           image: 737206603875.dkr.ecr.us-east-1.amazonaws.com/resqhub-resource-service:latest
+
           imagePullPolicy: Always
+
           ports:
             - containerPort: 5004
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 5004
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 5004
-            initialDelaySeconds: 30
-            periodSeconds: 20
 
 ---
+# ============================================================
+# 9. RESOURCE SERVICE - SERVICE
+# ============================================================
+
 apiVersion: v1
 kind: Service
 metadata:
   name: resource-service
   namespace: resqhub
+
 spec:
   type: ClusterIP
+
   selector:
     app: resource-service
+
   ports:
     - port: 5004
       targetPort: 5004
 
 ---
 # ============================================================
-# NOTIFICATION SERVICE
+# 10. NOTIFICATION SERVICE - DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -229,52 +240,54 @@ kind: Deployment
 metadata:
   name: notification-service
   namespace: resqhub
+
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: notification-service
+
   template:
     metadata:
       labels:
         app: notification-service
+
     spec:
       containers:
         - name: notification-service
+
           image: 737206603875.dkr.ecr.us-east-1.amazonaws.com/resqhub-notification-service:latest
+
           imagePullPolicy: Always
+
           ports:
             - containerPort: 5005
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 5005
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 5005
-            initialDelaySeconds: 30
-            periodSeconds: 20
 
 ---
+# ============================================================
+# 11. NOTIFICATION SERVICE - SERVICE
+# ============================================================
+
 apiVersion: v1
 kind: Service
 metadata:
   name: notification-service
   namespace: resqhub
+
 spec:
   type: ClusterIP
+
   selector:
     app: notification-service
+
   ports:
     - port: 5005
       targetPort: 5005
 
 ---
 # ============================================================
-# API GATEWAY
+# 12. API GATEWAY - DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -282,52 +295,75 @@ kind: Deployment
 metadata:
   name: api-gateway
   namespace: resqhub
+
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: api-gateway
+
   template:
     metadata:
       labels:
         app: api-gateway
+
     spec:
       containers:
         - name: api-gateway
+
           image: 737206603875.dkr.ecr.us-east-1.amazonaws.com/resqhub-api-gateway:latest
+
           imagePullPolicy: Always
+
           ports:
             - containerPort: 5000
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: 5000
-            initialDelaySeconds: 10
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 5000
-            initialDelaySeconds: 30
-            periodSeconds: 20
+
+          # ==================================================
+          # KUBERNETES SERVICE URLs
+          # ==================================================
+
+          env:
+
+            - name: USER_SERVICE_URL
+              value: "http://user-service:5001"
+
+            - name: INCIDENT_SERVICE_URL
+              value: "http://incident-service:5002"
+
+            - name: RESCUE_SERVICE_URL
+              value: "http://rescue-service:5003"
+
+            - name: RESOURCE_SERVICE_URL
+              value: "http://resource-service:5004"
+
+            - name: NOTIFICATION_SERVICE_URL
+              value: "http://notification-service:5005"
 
 ---
+# ============================================================
+# 13. API GATEWAY - SERVICE
+# ============================================================
+
 apiVersion: v1
 kind: Service
 metadata:
   name: api-gateway
   namespace: resqhub
+
 spec:
   type: LoadBalancer
+
   selector:
     app: api-gateway
+
   ports:
     - port: 5000
       targetPort: 5000
 
 ---
 # ============================================================
-# FRONTEND
+# 14. FRONTEND - DEPLOYMENT
 # ============================================================
 
 apiVersion: apps/v1
@@ -335,33 +371,47 @@ kind: Deployment
 metadata:
   name: frontend
   namespace: resqhub
+
 spec:
   replicas: 1
+
   selector:
     matchLabels:
       app: frontend
+
   template:
     metadata:
       labels:
         app: frontend
+
     spec:
       containers:
         - name: frontend
+
           image: 737206603875.dkr.ecr.us-east-1.amazonaws.com/resqhub-frontend:latest
+
           imagePullPolicy: Always
+
           ports:
             - containerPort: 80
 
 ---
+# ============================================================
+# 15. FRONTEND - SERVICE
+# ============================================================
+
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend
   namespace: resqhub
+
 spec:
   type: LoadBalancer
+
   selector:
     app: frontend
+
   ports:
     - port: 80
       targetPort: 80
