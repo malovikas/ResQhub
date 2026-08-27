@@ -1,3 +1,4 @@
+```groovy
 pipeline {
 
     agent any
@@ -7,15 +8,20 @@ pipeline {
     }
 
     environment {
+
         PROJECT_NAME = "ResQhub"
 
         AWS_REGION = "us-east-1"
+
         AWS_ACCOUNT_ID = "737206603875"
 
-        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        ECR_REGISTRY = "737206603875.dkr.ecr.us-east-1.amazonaws.com"
 
         EKS_CLUSTER = "resqhub-eks"
+
         K8S_NAMESPACE = "resqhub"
+
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -216,78 +222,65 @@ pipeline {
 
                 echo "========================================"
                 echo "Building ResQhub Docker images"
+                echo "Image Tag: ${IMAGE_TAG}"
                 echo "========================================"
 
                 sh '''
                     set -e
 
                     echo ""
-                    echo "========================================"
-                    echo "Building Frontend Image"
-                    echo "========================================"
+                    echo "===== Building Frontend ====="
 
                     docker build \
-                        -t resqhub-frontend:latest \
+                        -t resqhub-frontend:${IMAGE_TAG} \
                         ./frontend
 
 
                     echo ""
-                    echo "========================================"
-                    echo "Building User Service Image"
-                    echo "========================================"
+                    echo "===== Building User Service ====="
 
                     docker build \
-                        -t resqhub-user-service:latest \
+                        -t resqhub-user-service:${IMAGE_TAG} \
                         ./services/user-service
 
 
                     echo ""
-                    echo "========================================"
-                    echo "Building Incident Service Image"
-                    echo "========================================"
+                    echo "===== Building Incident Service ====="
 
                     docker build \
-                        -t resqhub-incident-service:latest \
+                        -t resqhub-incident-service:${IMAGE_TAG} \
                         ./services/incident-service
 
 
                     echo ""
-                    echo "========================================"
-                    echo "Building Rescue Service Image"
-                    echo "========================================"
+                    echo "===== Building Rescue Service ====="
 
                     docker build \
-                        -t resqhub-rescue-service:latest \
+                        -t resqhub-rescue-service:${IMAGE_TAG} \
                         ./services/rescue-service
 
 
                     echo ""
-                    echo "========================================"
-                    echo "Building Resource Service Image"
-                    echo "========================================"
+                    echo "===== Building Resource Service ====="
 
                     docker build \
-                        -t resqhub-resource-service:latest \
+                        -t resqhub-resource-service:${IMAGE_TAG} \
                         ./services/resource-service
 
 
                     echo ""
-                    echo "========================================"
-                    echo "Building Notification Service Image"
-                    echo "========================================"
+                    echo "===== Building Notification Service ====="
 
                     docker build \
-                        -t resqhub-notification-service:latest \
+                        -t resqhub-notification-service:${IMAGE_TAG} \
                         ./services/notification-service
 
 
                     echo ""
-                    echo "========================================"
-                    echo "Building API Gateway Image"
-                    echo "========================================"
+                    echo "===== Building API Gateway ====="
 
                     docker build \
-                        -t resqhub-api-gateway:latest \
+                        -t resqhub-api-gateway:${IMAGE_TAG} \
                         ./services/api-gateway
 
 
@@ -309,7 +302,7 @@ pipeline {
             steps {
 
                 echo "========================================"
-                echo "Verifying ResQhub Docker images"
+                echo "Verifying Docker images"
                 echo "========================================"
 
                 sh '''
@@ -321,54 +314,14 @@ pipeline {
                     docker images | grep resqhub
 
                     echo ""
-                    echo "========================================"
-                    echo "Docker image verification completed"
-                    echo "========================================"
+                    echo "Docker image verification completed."
                 '''
             }
         }
 
 
         // ====================================================
-        // 7. AWS / ECR CHECK
-        // ====================================================
-
-        stage('AWS ECR Check') {
-
-            steps {
-
-                echo "========================================"
-                echo "Checking AWS and ECR access"
-                echo "========================================"
-
-                sh '''
-                    set -e
-
-                    echo ""
-                    echo "===== AWS Version ====="
-                    aws --version
-
-                    echo ""
-                    echo "===== AWS Identity ====="
-                    aws sts get-caller-identity
-
-                    echo ""
-                    echo "===== ECR Repositories ====="
-
-                    aws ecr describe-repositories \
-                        --region ${AWS_REGION} \
-                        --query "repositories[].repositoryName" \
-                        --output table
-
-                    echo ""
-                    echo "AWS and ECR access verified successfully."
-                '''
-            }
-        }
-
-
-        // ====================================================
-        // 8. LOGIN TO ECR
+        // 7. LOGIN TO AMAZON ECR
         // ====================================================
 
         stage('Login to ECR') {
@@ -376,30 +329,31 @@ pipeline {
             steps {
 
                 echo "========================================"
-                echo "Logging in to AWS ECR"
+                echo "Logging in to Amazon ECR"
                 echo "========================================"
 
                 sh '''
                     set -e
 
+                    aws sts get-caller-identity
+
                     aws ecr get-login-password \
-                        --region ${AWS_REGION} \
-                    | docker login \
+                        --region ${AWS_REGION} | \
+                    docker login \
                         --username AWS \
                         --password-stdin ${ECR_REGISTRY}
 
-                    echo ""
-                    echo "Successfully logged in to ECR."
+                    echo "Successfully logged in to Amazon ECR."
                 '''
             }
         }
 
 
         // ====================================================
-        // 9. TAG DOCKER IMAGES
+        // 8. TAG IMAGES FOR ECR
         // ====================================================
 
-        stage('Tag Docker Images') {
+        stage('Tag Images for ECR') {
 
             steps {
 
@@ -410,71 +364,44 @@ pipeline {
                 sh '''
                     set -e
 
-                    echo ""
-                    echo "===== Tagging Frontend ====="
+                    docker tag \
+                        resqhub-frontend:${IMAGE_TAG} \
+                        ${ECR_REGISTRY}/resqhub-frontend:${IMAGE_TAG}
 
                     docker tag \
-                        resqhub-frontend:latest \
-                        ${ECR_REGISTRY}/resqhub-frontend:latest
-
-
-                    echo ""
-                    echo "===== Tagging User Service ====="
+                        resqhub-user-service:${IMAGE_TAG} \
+                        ${ECR_REGISTRY}/resqhub-user-service:${IMAGE_TAG}
 
                     docker tag \
-                        resqhub-user-service:latest \
-                        ${ECR_REGISTRY}/resqhub-user-service:latest
-
-
-                    echo ""
-                    echo "===== Tagging Incident Service ====="
+                        resqhub-incident-service:${IMAGE_TAG} \
+                        ${ECR_REGISTRY}/resqhub-incident-service:${IMAGE_TAG}
 
                     docker tag \
-                        resqhub-incident-service:latest \
-                        ${ECR_REGISTRY}/resqhub-incident-service:latest
-
-
-                    echo ""
-                    echo "===== Tagging Rescue Service ====="
+                        resqhub-rescue-service:${IMAGE_TAG} \
+                        ${ECR_REGISTRY}/resqhub-rescue-service:${IMAGE_TAG}
 
                     docker tag \
-                        resqhub-rescue-service:latest \
-                        ${ECR_REGISTRY}/resqhub-rescue-service:latest
-
-
-                    echo ""
-                    echo "===== Tagging Resource Service ====="
+                        resqhub-resource-service:${IMAGE_TAG} \
+                        ${ECR_REGISTRY}/resqhub-resource-service:${IMAGE_TAG}
 
                     docker tag \
-                        resqhub-resource-service:latest \
-                        ${ECR_REGISTRY}/resqhub-resource-service:latest
-
-
-                    echo ""
-                    echo "===== Tagging Notification Service ====="
+                        resqhub-notification-service:${IMAGE_TAG} \
+                        ${ECR_REGISTRY}/resqhub-notification-service:${IMAGE_TAG}
 
                     docker tag \
-                        resqhub-notification-service:latest \
-                        ${ECR_REGISTRY}/resqhub-notification-service:latest
+                        resqhub-api-gateway:${IMAGE_TAG} \
+                        ${ECR_REGISTRY}/resqhub-api-gateway:${IMAGE_TAG}
 
 
                     echo ""
-                    echo "===== Tagging API Gateway ====="
-
-                    docker tag \
-                        resqhub-api-gateway:latest \
-                        ${ECR_REGISTRY}/resqhub-api-gateway:latest
-
-
-                    echo ""
-                    echo "All Docker images tagged successfully."
+                    echo "All images tagged for ECR."
                 '''
             }
         }
 
 
         // ====================================================
-        // 10. PUSH IMAGES TO ECR
+        // 9. PUSH IMAGES TO ECR
         // ====================================================
 
         stage('Push Images to ECR') {
@@ -482,64 +409,44 @@ pipeline {
             steps {
 
                 echo "========================================"
-                echo "Pushing ResQhub images to ECR"
+                echo "Pushing Docker images to Amazon ECR"
                 echo "========================================"
 
                 sh '''
                     set -e
 
-                    echo ""
-                    echo "===== Pushing Frontend ====="
-
+                    echo "Pushing frontend..."
                     docker push \
-                        ${ECR_REGISTRY}/resqhub-frontend:latest
+                        ${ECR_REGISTRY}/resqhub-frontend:${IMAGE_TAG}
 
-
-                    echo ""
-                    echo "===== Pushing User Service ====="
-
+                    echo "Pushing user-service..."
                     docker push \
-                        ${ECR_REGISTRY}/resqhub-user-service:latest
+                        ${ECR_REGISTRY}/resqhub-user-service:${IMAGE_TAG}
 
-
-                    echo ""
-                    echo "===== Pushing Incident Service ====="
-
+                    echo "Pushing incident-service..."
                     docker push \
-                        ${ECR_REGISTRY}/resqhub-incident-service:latest
+                        ${ECR_REGISTRY}/resqhub-incident-service:${IMAGE_TAG}
 
-
-                    echo ""
-                    echo "===== Pushing Rescue Service ====="
-
+                    echo "Pushing rescue-service..."
                     docker push \
-                        ${ECR_REGISTRY}/resqhub-rescue-service:latest
+                        ${ECR_REGISTRY}/resqhub-rescue-service:${IMAGE_TAG}
 
-
-                    echo ""
-                    echo "===== Pushing Resource Service ====="
-
+                    echo "Pushing resource-service..."
                     docker push \
-                        ${ECR_REGISTRY}/resqhub-resource-service:latest
+                        ${ECR_REGISTRY}/resqhub-resource-service:${IMAGE_TAG}
 
-
-                    echo ""
-                    echo "===== Pushing Notification Service ====="
-
+                    echo "Pushing notification-service..."
                     docker push \
-                        ${ECR_REGISTRY}/resqhub-notification-service:latest
+                        ${ECR_REGISTRY}/resqhub-notification-service:${IMAGE_TAG}
 
-
-                    echo ""
-                    echo "===== Pushing API Gateway ====="
-
+                    echo "Pushing api-gateway..."
                     docker push \
-                        ${ECR_REGISTRY}/resqhub-api-gateway:latest
+                        ${ECR_REGISTRY}/resqhub-api-gateway:${IMAGE_TAG}
 
 
                     echo ""
                     echo "========================================"
-                    echo "All images pushed successfully to ECR"
+                    echo "All images pushed to ECR successfully"
                     echo "========================================"
                 '''
             }
@@ -547,44 +454,127 @@ pipeline {
 
 
         // ====================================================
-        // 11. EKS CHECK
+        // 10. VERIFY ECR
         // ====================================================
 
-        stage('EKS Check') {
+        stage('Verify ECR Images') {
 
             steps {
 
                 echo "========================================"
-                echo "Checking EKS cluster"
+                echo "Verifying images in Amazon ECR"
                 echo "========================================"
 
                 sh '''
                     set -e
 
                     echo ""
-                    echo "===== Updating kubeconfig ====="
+                    echo "===== Frontend ====="
+
+                    aws ecr describe-images \
+                        --repository-name resqhub-frontend \
+                        --image-ids imageTag=${IMAGE_TAG} \
+                        --region ${AWS_REGION}
+
+
+                    echo ""
+                    echo "===== User Service ====="
+
+                    aws ecr describe-images \
+                        --repository-name resqhub-user-service \
+                        --image-ids imageTag=${IMAGE_TAG} \
+                        --region ${AWS_REGION}
+
+
+                    echo ""
+                    echo "===== Incident Service ====="
+
+                    aws ecr describe-images \
+                        --repository-name resqhub-incident-service \
+                        --image-ids imageTag=${IMAGE_TAG} \
+                        --region ${AWS_REGION}
+
+
+                    echo ""
+                    echo "===== Rescue Service ====="
+
+                    aws ecr describe-images \
+                        --repository-name resqhub-rescue-service \
+                        --image-ids imageTag=${IMAGE_TAG} \
+                        --region ${AWS_REGION}
+
+
+                    echo ""
+                    echo "===== Resource Service ====="
+
+                    aws ecr describe-images \
+                        --repository-name resqhub-resource-service \
+                        --image-ids imageTag=${IMAGE_TAG} \
+                        --region ${AWS_REGION}
+
+
+                    echo ""
+                    echo "===== Notification Service ====="
+
+                    aws ecr describe-images \
+                        --repository-name resqhub-notification-service \
+                        --image-ids imageTag=${IMAGE_TAG} \
+                        --region ${AWS_REGION}
+
+
+                    echo ""
+                    echo "===== API Gateway ====="
+
+                    aws ecr describe-images \
+                        --repository-name resqhub-api-gateway \
+                        --image-ids imageTag=${IMAGE_TAG} \
+                        --region ${AWS_REGION}
+
+
+                    echo ""
+                    echo "All ECR images verified successfully."
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 11. CONFIGURE EKS
+        // ====================================================
+
+        stage('Configure EKS') {
+
+            steps {
+
+                echo "========================================"
+                echo "Configuring kubectl for EKS"
+                echo "========================================"
+
+                sh '''
+                    set -e
 
                     aws eks update-kubeconfig \
-                        --region ${AWS_REGION} \
-                        --name ${EKS_CLUSTER}
+                        --name ${EKS_CLUSTER} \
+                        --region ${AWS_REGION}
 
                     echo ""
                     echo "===== EKS Cluster ====="
 
-                    kubectl cluster-info
+                    aws eks describe-cluster \
+                        --name ${EKS_CLUSTER} \
+                        --region ${AWS_REGION} \
+                        --query 'cluster.status' \
+                        --output text
+
 
                     echo ""
-                    echo "===== EKS Nodes ====="
+                    echo "===== Kubernetes Nodes ====="
 
                     kubectl get nodes
 
-                    echo ""
-                    echo "===== ResQhub Namespace ====="
-
-                    kubectl get namespace ${K8S_NAMESPACE}
 
                     echo ""
-                    echo "EKS access verified successfully."
+                    echo "EKS configuration successful."
                 '''
             }
         }
@@ -600,6 +590,7 @@ pipeline {
 
                 echo "========================================"
                 echo "Deploying ResQhub to EKS"
+                echo "Image Tag: ${IMAGE_TAG}"
                 echo "========================================"
 
                 sh '''
@@ -609,7 +600,7 @@ pipeline {
                     echo "===== Updating Frontend ====="
 
                     kubectl set image deployment/frontend \
-                        frontend=${ECR_REGISTRY}/resqhub-frontend:latest \
+                        frontend=${ECR_REGISTRY}/resqhub-frontend:${IMAGE_TAG} \
                         -n ${K8S_NAMESPACE}
 
 
@@ -617,7 +608,7 @@ pipeline {
                     echo "===== Updating User Service ====="
 
                     kubectl set image deployment/user-service \
-                        user-service=${ECR_REGISTRY}/resqhub-user-service:latest \
+                        user-service=${ECR_REGISTRY}/resqhub-user-service:${IMAGE_TAG} \
                         -n ${K8S_NAMESPACE}
 
 
@@ -625,7 +616,7 @@ pipeline {
                     echo "===== Updating Incident Service ====="
 
                     kubectl set image deployment/incident-service \
-                        incident-service=${ECR_REGISTRY}/resqhub-incident-service:latest \
+                        incident-service=${ECR_REGISTRY}/resqhub-incident-service:${IMAGE_TAG} \
                         -n ${K8S_NAMESPACE}
 
 
@@ -633,7 +624,7 @@ pipeline {
                     echo "===== Updating Rescue Service ====="
 
                     kubectl set image deployment/rescue-service \
-                        rescue-service=${ECR_REGISTRY}/resqhub-rescue-service:latest \
+                        rescue-service=${ECR_REGISTRY}/resqhub-rescue-service:${IMAGE_TAG} \
                         -n ${K8S_NAMESPACE}
 
 
@@ -641,7 +632,7 @@ pipeline {
                     echo "===== Updating Resource Service ====="
 
                     kubectl set image deployment/resource-service \
-                        resource-service=${ECR_REGISTRY}/resqhub-resource-service:latest \
+                        resource-service=${ECR_REGISTRY}/resqhub-resource-service:${IMAGE_TAG} \
                         -n ${K8S_NAMESPACE}
 
 
@@ -649,7 +640,7 @@ pipeline {
                     echo "===== Updating Notification Service ====="
 
                     kubectl set image deployment/notification-service \
-                        notification-service=${ECR_REGISTRY}/resqhub-notification-service:latest \
+                        notification-service=${ECR_REGISTRY}/resqhub-notification-service:${IMAGE_TAG} \
                         -n ${K8S_NAMESPACE}
 
 
@@ -657,14 +648,12 @@ pipeline {
                     echo "===== Updating API Gateway ====="
 
                     kubectl set image deployment/api-gateway \
-                        api-gateway=${ECR_REGISTRY}/resqhub-api-gateway:latest \
+                        api-gateway=${ECR_REGISTRY}/resqhub-api-gateway:${IMAGE_TAG} \
                         -n ${K8S_NAMESPACE}
 
 
                     echo ""
-                    echo "========================================"
-                    echo "EKS deployments updated successfully"
-                    echo "========================================"
+                    echo "All Kubernetes deployments updated."
                 '''
             }
         }
@@ -674,12 +663,12 @@ pipeline {
         // 13. ROLLOUT STATUS
         // ====================================================
 
-        stage('Verify Rollout') {
+        stage('Rollout Status') {
 
             steps {
 
                 echo "========================================"
-                echo "Verifying Kubernetes rollout"
+                echo "Checking Kubernetes rollout status"
                 echo "========================================"
 
                 sh '''
@@ -690,7 +679,8 @@ pipeline {
 
                     kubectl rollout status \
                         deployment/frontend \
-                        -n ${K8S_NAMESPACE}
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=180s
 
 
                     echo ""
@@ -698,7 +688,8 @@ pipeline {
 
                     kubectl rollout status \
                         deployment/user-service \
-                        -n ${K8S_NAMESPACE}
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=180s
 
 
                     echo ""
@@ -706,7 +697,8 @@ pipeline {
 
                     kubectl rollout status \
                         deployment/incident-service \
-                        -n ${K8S_NAMESPACE}
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=180s
 
 
                     echo ""
@@ -714,7 +706,8 @@ pipeline {
 
                     kubectl rollout status \
                         deployment/rescue-service \
-                        -n ${K8S_NAMESPACE}
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=180s
 
 
                     echo ""
@@ -722,7 +715,8 @@ pipeline {
 
                     kubectl rollout status \
                         deployment/resource-service \
-                        -n ${K8S_NAMESPACE}
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=180s
 
 
                     echo ""
@@ -730,7 +724,8 @@ pipeline {
 
                     kubectl rollout status \
                         deployment/notification-service \
-                        -n ${K8S_NAMESPACE}
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=180s
 
 
                     echo ""
@@ -738,7 +733,8 @@ pipeline {
 
                     kubectl rollout status \
                         deployment/api-gateway \
-                        -n ${K8S_NAMESPACE}
+                        -n ${K8S_NAMESPACE} \
+                        --timeout=180s
 
 
                     echo ""
@@ -751,32 +747,31 @@ pipeline {
 
 
         // ====================================================
-        // 14. VERIFY APPLICATION
+        // 14. VERIFY DEPLOYMENT
         // ====================================================
 
-        stage('Verify Application') {
+        stage('Verify Deployment') {
 
             steps {
 
                 echo "========================================"
-                echo "Verifying ResQhub application"
+                echo "Verifying ResQhub deployment"
                 echo "========================================"
 
                 sh '''
                     set -e
 
                     echo ""
-                    echo "===== Pods ====="
-
-                    kubectl get pods \
-                        -n ${K8S_NAMESPACE} \
-                        -o wide
-
-
-                    echo ""
                     echo "===== Deployments ====="
 
                     kubectl get deployments \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Pods ====="
+
+                    kubectl get pods \
                         -n ${K8S_NAMESPACE}
 
 
@@ -797,7 +792,7 @@ pipeline {
 
                     echo ""
                     echo "========================================"
-                    echo "ResQhub application verification completed"
+                    echo "ResQhub deployment verification completed"
                     echo "========================================"
                 '''
             }
@@ -820,18 +815,13 @@ pipeline {
             echo "Build Number: ${BUILD_NUMBER}"
             echo "Branch: ${env.BRANCH_NAME}"
             echo "Project: ${PROJECT_NAME}"
+            echo "Image Tag: ${IMAGE_TAG}"
 
             echo ""
             echo "Docker images built successfully."
-            echo "Docker images pushed to AWS ECR."
-            echo "Application deployed successfully to AWS EKS."
+            echo "Images pushed to Amazon ECR."
+            echo "Images deployed to Amazon EKS."
             echo "Kubernetes rollout completed successfully."
-            echo "ResQhub application verification completed."
-
-            echo ""
-            echo "========================================"
-            echo "GitHub -> Jenkins -> Docker -> ECR -> EKS"
-            echo "========================================"
         }
 
 
@@ -849,8 +839,10 @@ pipeline {
         always {
 
             echo "========================================"
-            echo "Jenkins build completed"
+            echo "Jenkins pipeline execution completed"
             echo "========================================"
         }
     }
 }
+```
+
