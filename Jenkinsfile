@@ -8,6 +8,14 @@ pipeline {
 
     environment {
         PROJECT_NAME = "ResQhub"
+
+        AWS_REGION = "us-east-1"
+        AWS_ACCOUNT_ID = "737206603875"
+
+        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+        EKS_CLUSTER = "resqhub-eks"
+        K8S_NAMESPACE = "resqhub"
     }
 
     stages {
@@ -319,6 +327,481 @@ pipeline {
                 '''
             }
         }
+
+
+        // ====================================================
+        // 7. AWS / ECR CHECK
+        // ====================================================
+
+        stage('AWS ECR Check') {
+
+            steps {
+
+                echo "========================================"
+                echo "Checking AWS and ECR access"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== AWS Version ====="
+                    aws --version
+
+                    echo ""
+                    echo "===== AWS Identity ====="
+                    aws sts get-caller-identity
+
+                    echo ""
+                    echo "===== ECR Repositories ====="
+
+                    aws ecr describe-repositories \
+                        --region ${AWS_REGION} \
+                        --query "repositories[].repositoryName" \
+                        --output table
+
+                    echo ""
+                    echo "AWS and ECR access verified successfully."
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 8. LOGIN TO ECR
+        // ====================================================
+
+        stage('Login to ECR') {
+
+            steps {
+
+                echo "========================================"
+                echo "Logging in to AWS ECR"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    aws ecr get-login-password \
+                        --region ${AWS_REGION} \
+                    | docker login \
+                        --username AWS \
+                        --password-stdin ${ECR_REGISTRY}
+
+                    echo ""
+                    echo "Successfully logged in to ECR."
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 9. TAG DOCKER IMAGES
+        // ====================================================
+
+        stage('Tag Docker Images') {
+
+            steps {
+
+                echo "========================================"
+                echo "Tagging Docker images for ECR"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== Tagging Frontend ====="
+
+                    docker tag \
+                        resqhub-frontend:latest \
+                        ${ECR_REGISTRY}/resqhub-frontend:latest
+
+
+                    echo ""
+                    echo "===== Tagging User Service ====="
+
+                    docker tag \
+                        resqhub-user-service:latest \
+                        ${ECR_REGISTRY}/resqhub-user-service:latest
+
+
+                    echo ""
+                    echo "===== Tagging Incident Service ====="
+
+                    docker tag \
+                        resqhub-incident-service:latest \
+                        ${ECR_REGISTRY}/resqhub-incident-service:latest
+
+
+                    echo ""
+                    echo "===== Tagging Rescue Service ====="
+
+                    docker tag \
+                        resqhub-rescue-service:latest \
+                        ${ECR_REGISTRY}/resqhub-rescue-service:latest
+
+
+                    echo ""
+                    echo "===== Tagging Resource Service ====="
+
+                    docker tag \
+                        resqhub-resource-service:latest \
+                        ${ECR_REGISTRY}/resqhub-resource-service:latest
+
+
+                    echo ""
+                    echo "===== Tagging Notification Service ====="
+
+                    docker tag \
+                        resqhub-notification-service:latest \
+                        ${ECR_REGISTRY}/resqhub-notification-service:latest
+
+
+                    echo ""
+                    echo "===== Tagging API Gateway ====="
+
+                    docker tag \
+                        resqhub-api-gateway:latest \
+                        ${ECR_REGISTRY}/resqhub-api-gateway:latest
+
+
+                    echo ""
+                    echo "All Docker images tagged successfully."
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 10. PUSH IMAGES TO ECR
+        // ====================================================
+
+        stage('Push Images to ECR') {
+
+            steps {
+
+                echo "========================================"
+                echo "Pushing ResQhub images to ECR"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== Pushing Frontend ====="
+
+                    docker push \
+                        ${ECR_REGISTRY}/resqhub-frontend:latest
+
+
+                    echo ""
+                    echo "===== Pushing User Service ====="
+
+                    docker push \
+                        ${ECR_REGISTRY}/resqhub-user-service:latest
+
+
+                    echo ""
+                    echo "===== Pushing Incident Service ====="
+
+                    docker push \
+                        ${ECR_REGISTRY}/resqhub-incident-service:latest
+
+
+                    echo ""
+                    echo "===== Pushing Rescue Service ====="
+
+                    docker push \
+                        ${ECR_REGISTRY}/resqhub-rescue-service:latest
+
+
+                    echo ""
+                    echo "===== Pushing Resource Service ====="
+
+                    docker push \
+                        ${ECR_REGISTRY}/resqhub-resource-service:latest
+
+
+                    echo ""
+                    echo "===== Pushing Notification Service ====="
+
+                    docker push \
+                        ${ECR_REGISTRY}/resqhub-notification-service:latest
+
+
+                    echo ""
+                    echo "===== Pushing API Gateway ====="
+
+                    docker push \
+                        ${ECR_REGISTRY}/resqhub-api-gateway:latest
+
+
+                    echo ""
+                    echo "========================================"
+                    echo "All images pushed successfully to ECR"
+                    echo "========================================"
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 11. EKS CHECK
+        // ====================================================
+
+        stage('EKS Check') {
+
+            steps {
+
+                echo "========================================"
+                echo "Checking EKS cluster"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== Updating kubeconfig ====="
+
+                    aws eks update-kubeconfig \
+                        --region ${AWS_REGION} \
+                        --name ${EKS_CLUSTER}
+
+                    echo ""
+                    echo "===== EKS Cluster ====="
+
+                    kubectl cluster-info
+
+                    echo ""
+                    echo "===== EKS Nodes ====="
+
+                    kubectl get nodes
+
+                    echo ""
+                    echo "===== ResQhub Namespace ====="
+
+                    kubectl get namespace ${K8S_NAMESPACE}
+
+                    echo ""
+                    echo "EKS access verified successfully."
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 12. DEPLOY TO EKS
+        // ====================================================
+
+        stage('Deploy to EKS') {
+
+            steps {
+
+                echo "========================================"
+                echo "Deploying ResQhub to EKS"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== Updating Frontend ====="
+
+                    kubectl set image deployment/frontend \
+                        frontend=${ECR_REGISTRY}/resqhub-frontend:latest \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Updating User Service ====="
+
+                    kubectl set image deployment/user-service \
+                        user-service=${ECR_REGISTRY}/resqhub-user-service:latest \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Updating Incident Service ====="
+
+                    kubectl set image deployment/incident-service \
+                        incident-service=${ECR_REGISTRY}/resqhub-incident-service:latest \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Updating Rescue Service ====="
+
+                    kubectl set image deployment/rescue-service \
+                        rescue-service=${ECR_REGISTRY}/resqhub-rescue-service:latest \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Updating Resource Service ====="
+
+                    kubectl set image deployment/resource-service \
+                        resource-service=${ECR_REGISTRY}/resqhub-resource-service:latest \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Updating Notification Service ====="
+
+                    kubectl set image deployment/notification-service \
+                        notification-service=${ECR_REGISTRY}/resqhub-notification-service:latest \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Updating API Gateway ====="
+
+                    kubectl set image deployment/api-gateway \
+                        api-gateway=${ECR_REGISTRY}/resqhub-api-gateway:latest \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "========================================"
+                    echo "EKS deployments updated successfully"
+                    echo "========================================"
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 13. ROLLOUT STATUS
+        // ====================================================
+
+        stage('Verify Rollout') {
+
+            steps {
+
+                echo "========================================"
+                echo "Verifying Kubernetes rollout"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== Frontend Rollout ====="
+
+                    kubectl rollout status \
+                        deployment/frontend \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== User Service Rollout ====="
+
+                    kubectl rollout status \
+                        deployment/user-service \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Incident Service Rollout ====="
+
+                    kubectl rollout status \
+                        deployment/incident-service \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Rescue Service Rollout ====="
+
+                    kubectl rollout status \
+                        deployment/rescue-service \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Resource Service Rollout ====="
+
+                    kubectl rollout status \
+                        deployment/resource-service \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Notification Service Rollout ====="
+
+                    kubectl rollout status \
+                        deployment/notification-service \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== API Gateway Rollout ====="
+
+                    kubectl rollout status \
+                        deployment/api-gateway \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "========================================"
+                    echo "All deployments rolled out successfully"
+                    echo "========================================"
+                '''
+            }
+        }
+
+
+        // ====================================================
+        // 14. VERIFY APPLICATION
+        // ====================================================
+
+        stage('Verify Application') {
+
+            steps {
+
+                echo "========================================"
+                echo "Verifying ResQhub application"
+                echo "========================================"
+
+                sh '''
+                    set -e
+
+                    echo ""
+                    echo "===== Pods ====="
+
+                    kubectl get pods \
+                        -n ${K8S_NAMESPACE} \
+                        -o wide
+
+
+                    echo ""
+                    echo "===== Deployments ====="
+
+                    kubectl get deployments \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Services ====="
+
+                    kubectl get services \
+                        -n ${K8S_NAMESPACE}
+
+
+                    echo ""
+                    echo "===== Container Images ====="
+
+                    kubectl get deployments \
+                        -n ${K8S_NAMESPACE} \
+                        -o jsonpath='{range .items[*]}{.metadata.name}{" -> "}{.spec.template.spec.containers[0].image}{"\\n"}{end}'
+
+
+                    echo ""
+                    echo "========================================"
+                    echo "ResQhub application verification completed"
+                    echo "========================================"
+                '''
+            }
+        }
     }
 
 
@@ -331,7 +814,7 @@ pipeline {
         success {
 
             echo "========================================"
-            echo "RESQHUB CI BUILD SUCCESSFUL"
+            echo "RESQHUB CI/CD PIPELINE SUCCESSFUL"
             echo "========================================"
 
             echo "Build Number: ${BUILD_NUMBER}"
@@ -339,16 +822,26 @@ pipeline {
             echo "Project: ${PROJECT_NAME}"
 
             echo ""
-            echo "All ResQhub Docker images were built successfully."
+            echo "Docker images built successfully."
+            echo "Docker images pushed to AWS ECR."
+            echo "Application deployed successfully to AWS EKS."
+            echo "Kubernetes rollout completed successfully."
+            echo "ResQhub application verification completed."
+
+            echo ""
+            echo "========================================"
+            echo "GitHub -> Jenkins -> Docker -> ECR -> EKS"
+            echo "========================================"
         }
 
 
         failure {
 
             echo "========================================"
-            echo "RESQHUB CI BUILD FAILED"
+            echo "RESQHUB CI/CD PIPELINE FAILED"
             echo "========================================"
 
+            echo "Build Number: ${BUILD_NUMBER}"
             echo "Check the Jenkins console output."
         }
 
