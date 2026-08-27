@@ -5,7 +5,7 @@
 // API Gateway: http://127.0.0.1:5000/api
 // ============================================================
 
-const API_BASE_URL = "http://127.0.0.1:5000/api";
+const API_BASE_URL = "http://a1c4f6994904545f1b6942971d492798-1616174479.us-east-1.elb.amazonaws.com:5000/api";
 
 let CURRENT_USER = null;
 
